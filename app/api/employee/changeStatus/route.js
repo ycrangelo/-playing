@@ -19,7 +19,7 @@ export async function POST(req) {
    const updatedEmployee = await prisma.employee.update({
       where: { employee_id: Number(employee_id) }, // Find by employee_id
       data: {
-       status: Boolean(status)
+       status: { set: status }
       },
    });
   return new Response(JSON.stringify(updatedEmployee), {

@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { useEffect } from 'react';
 import {
   Button,
   Input,
@@ -15,10 +16,7 @@ import {
 import { useState } from "react";
 import EmployeeTable from './component/EmployeeTable';
 import DepartmentTable from './component/DepartmentTable';
-
-
-
-
+import axios from 'axios';
 
 export default function App() {
    
@@ -35,41 +33,136 @@ export default function App() {
   const [departmentId, setDepartmentId] = useState("");
   const [departmentDescription, setDepartmentDescription] = useState("");
   const [message, setMessage] = useState(null);
+  const [department, setDepartment] = useState([])
+  const [selectedDeptId, setSelectedDeptId] = useState("");
+  const [posts, setPosts] = useState([]);
+  const [email, setEmail] = useState("");
+  const [EmployeeName, setName] = useState("")
+  const [selectedFile, setSelectedFile] = useState(null);
 
-   const handleSubmit = async (e) => {
-     e.preventDefault();
-     setMessage(null);
+  const handleFileChange = (event) => {
+    const file = event.target.files[0]; // Get the first file selected
+    setSelectedFile(file);
+  };
+  
+  const handlenameChange = (event) => {
+    setName(event.target.value);  // Store the value of the input in state
+  };
 
-     if (!departmentId || !departmentDescription) {
-       setMessage({ type: "error", text: "Department ID and description are required." });
-       return;
-     }
+  // To access the value, just refer to `email`
+  console.log("Current email value:", EmployeeName); // This logs the email value
 
-     try {
-      const response = await fetch("http://localhost:3000/api/department/createDepartment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          department_id: parseInt(departmentId),
-          department_description: departmentDescription,
-        }),
+  const handleEmailChange = (event) => {
+    setEmail(event.target.value);  // Store the value of the input in state
+  };
+
+  // To access the value, just refer to `email`
+  console.log("Current email value:", email); // This logs the email value
+
+  const handleDeptChange = (event) => {
+  const selectedId = event.target.value;  // dept.id will be the value
+  setSelectedDeptId(selectedId);
+  };
+  useEffect(() => {
+  if (selectedDeptId) {
+    console.log("Selected Department ID:", selectedDeptId);
+  }
+}, [selectedDeptId]);
+
+
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/department/getAllDepartment`
+      );
+      const fetchDEpt = response.data;
+      console.log(fetchDEpt)
+      setDepartment((prevPosts) => {
+        const existingIds = new Set(prevPosts.map((post) => post.id));
+        const newUniquePosts = fetchDEpt.filter((post) => !existingIds.has(post.id));
+        return [...prevPosts, ...newUniquePosts];
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMessage({ type: "success", text: `Department created successfully: ${data.department_description}` });
-        setDepartmentId("");
-        setDepartmentDescription("");
-      } else {
-        const errorData = await response.json();
-        setMessage({ type: "error", text: errorData.error || "Failed to create department." });
-      }
     } catch (error) {
-      setMessage({ type: "error", text: "An unexpected error occurred." });
+      console.error("Error fetching posts:", error.response ? error.response.data : error.message);
     }
   };
+
+  useEffect(() => {
+    fetchPosts();
+       const intervalId = setInterval(() => {
+             fetchPosts();
+             console.log(" polling")
+         }, 10000); // Poll every 10 second
+  }, []);
+
+   const handleAddEmployee = async (e) => {
+  if (e && e.preventDefault) e.preventDefault(); // Ensure e is valid before calling preventDefault()
+
+  // Generate a random 13-digit number
+  const randomDepartmentId = Math.floor(1000000000000 + Math.random() * 9000000000000);
+
+     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+if (!emailRegex.test(email)) {
+  alert("Please enter a valid email address.");
+  return; // Stop further execution if the email is invalid
+}
+
+  try {
+    const response = await axios.post("http://localhost:3000/api/employee/addEmployee", {
+      employee_id: randomDepartmentId,
+      department_id: Number(selectedDeptId),
+      name: EmployeeName,
+      email: email,
+    });
+    
+    if (response.data) {
+      closeEmployeeModal()
+    }
+
+    console.log("Successful employee add", response.data);
+  } catch (error) {
+    console.error("Error adding employee:", error);
+  }
+};
+
+  const handleSubmit = async (e) => {
+  if (e && e.preventDefault) e.preventDefault(); // Ensure e is valid before calling preventDefault()
+  setMessage(null);
+
+  // Generate a random 13-digit number
+  const randomDepartmentId = Math.floor(1000000000000 + Math.random() * 9000000000000);
+
+  if (!departmentDescription) {
+    setMessage({ type: "error", text: "Department description is required." });
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:3000/api/department/createDepartment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        department_id: randomDepartmentId,
+        department_description: departmentDescription,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setMessage({ type: "success", text: `Department created successfully: ${data.department_description}` });
+      setDepartmentDescription(""); // Clear input field
+      closeDepartmentModal()
+    } else {
+      const errorData = await response.json();
+      setMessage({ type: "error", text: errorData.error || "Failed to create department." });
+    }
+  } catch (error) {
+    setMessage({ type: "error", text: "An unexpected error occurred." });
+  }
+};
 
   return (
    <div className="h-screen ">
@@ -92,8 +185,8 @@ export default function App() {
           <ModalContent>
             <ModalHeader className="flex flex-col gap-1 text-black">Add Department</ModalHeader>
             <ModalBody className="text-black">
-              <Input label="Department ID" type="text" />
-              <Input label="Department Description" type="text" />
+                  <Input type="file" />
+                   {selectedFile && <p>Selected file: {selectedFile.name}</p>}
             </ModalBody>
             <ModalFooter>
               <Button color="danger" variant="light" onPress={closeCSVModal}>
@@ -121,23 +214,32 @@ export default function App() {
           <ModalContent>
             <ModalHeader className="flex flex-col gap-1 text-black">Add Employee</ModalHeader>
             <ModalBody className="text-black">
-              <Input label="Name" type="text" />
-              <Input label="Email" type="email" />
+                  <Input label="Name"
+                    type="text"
+                   value={EmployeeName} 
+        onChange={handlenameChange} 
+                  />
+              <Input 
+        label="Email" 
+        type="email" 
+        value={email} 
+        onChange={handleEmailChange} 
+      />
               <div>
-                <RadioGroup label="Select Department" className="text-black">
-                  <Radio value="buenos-aires">Buenos Aires</Radio>
-                  <Radio value="sydney">Sydney</Radio>
-                  <Radio value="san-francisco">San Francisco</Radio>
-                  <Radio value="london">London</Radio>
-                  <Radio value="tokyo">Tokyo</Radio>
-                </RadioGroup>
+                     <RadioGroup label="Select Department" className="text-black" onChange={handleDeptChange}>
+    {department.map((dept) => (
+      <Radio key={dept.id} value={dept.department_id}>
+        {dept.department_description}
+      </Radio>
+    ))}
+  </RadioGroup>
               </div>
             </ModalBody>
             <ModalFooter>
               <Button color="danger" variant="light" onPress={closeEmployeeModal}>
                 Close
               </Button>
-              <Button color="success" onPress={closeEmployeeModal}>
+              <Button color="success" onClick={handleAddEmployee}>
                 Save
               </Button>
             </ModalFooter>
@@ -184,43 +286,3 @@ export default function App() {
 
   );
 }
-
-
-
-
-
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setMessage(null);
-
-  //   if (!departmentId || !departmentDescription) {
-  //     setMessage({ type: "error", text: "Department ID and description are required." });
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await fetch("http://localhost:3000/api/department/createDepartment", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         department_id: parseInt(departmentId),
-  //         department_description: departmentDescription,
-  //       }),
-  //     });
-
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setMessage({ type: "success", text: `Department created successfully: ${data.department_description}` });
-  //       setDepartmentId("");
-  //       setDepartmentDescription("");
-  //     } else {
-  //       const errorData = await response.json();
-  //       setMessage({ type: "error", text: errorData.error || "Failed to create department." });
-  //     }
-  //   } catch (error) {
-  //     setMessage({ type: "error", text: "An unexpected error occurred." });
-  //   }
-  // };
