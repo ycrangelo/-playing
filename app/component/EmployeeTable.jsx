@@ -59,7 +59,7 @@ export default function EmployeeTable() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/employee/updateInfo",
+        "https://playing-nine.vercel.app/api/employee/updateInfo",
         {
           employee_id: Number(selectedEmployee.employee_id),
           department_id: Number(selectedEmployee.department_id),
@@ -80,7 +80,7 @@ export default function EmployeeTable() {
       const empstatus = status === "true" ? true : false;
 
      
-      const respontActive = await axios.post("http://localhost:3000/api/employee/changeStatus",
+      const respontActive = await axios.post("https://playing-nine.vercel.app/api/employee/changeStatus",
         {
           employee_id: Number(selectedEmployee.employee_id),
           status: empstatus
@@ -100,7 +100,7 @@ export default function EmployeeTable() {
   const handleFetchEmployee = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/employee/getAllEmployeeInfo`
+        `https://playing-nine.vercel.app/api/employee/getAllEmployeeInfo`
       );
       const fetchEmployee = response.data;
       setPosts(fetchEmployee); // Replace the existing data with the new data

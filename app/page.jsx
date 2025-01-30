@@ -55,7 +55,7 @@ export default function App() {
         formData.append("csvFile", selectedFile);
 
         try {
-            const response = await axios.post("http://localhost:3000/api/employee/addCsvEmployee", formData, {
+            const response = await axios.post("https://playing-nine.vercel.app/api/employee/addCsvEmployee", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -91,7 +91,7 @@ export default function App() {
   const fetchDepartment = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/department/getAllDepartment`
+        `https://playing-nine.vercel.app/api/department/getAllDepartment`
       );
       const fetchDEpt = response.data;
       //this block of code for fetching new department
@@ -130,7 +130,7 @@ if (!emailRegex.test(email)) {
 
      try {
     //axios post for adding a employee
-    const response = await axios.post("http://localhost:3000/api/employee/addEmployee", {
+    const response = await axios.post("https://playing-nine.vercel.app/api/employee/addEmployee", {
       employee_id: randomDepartmentId,
       department_id: Number(selectedDeptId),
       name: EmployeeName,
@@ -161,7 +161,7 @@ if (!emailRegex.test(email)) {
 
     try {
     //axios post for adding department
-    const response = await fetch("http://localhost:3000/api/department/createDepartment", {
+    const response = await fetch("https://playing-nine.vercel.app/api/department/createDepartment", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

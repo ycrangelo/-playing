@@ -18,7 +18,7 @@ export default function DepartmentTable() {
   const deleteDepartment = async (departmentId) => {
   try {
     const response = await axios.post(
-      "http://localhost:3000/api/department/deleteDepartment",
+      "https://playing-nine.vercel.app/api/department/deleteDepartment",
       { department_id: departmentId }, // Send department_id in body
       {
         headers: {
@@ -40,7 +40,7 @@ export default function DepartmentTable() {
   const handlefetchDEpartment = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/department/getAllDepartment`
+        `https://playing-nine.vercel.app/api/department/getAllDepartment`
       );
       const fetchDEpt = response.data;
       setPosts(fetchDEpt);
