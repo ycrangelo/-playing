@@ -29,7 +29,7 @@ export default function App() {
   // State for Add CSV file Modal
   const { isOpen: isCSVModalOpen, onOpen: openCSVModal, onClose: closeCSVModal } = useDisclosure();
 
-  // State for Department Form
+  // States
   const [departmentId, setDepartmentId] = useState("");
   const [departmentDescription, setDepartmentDescription] = useState("");
   const [message, setMessage] = useState(null);
@@ -40,24 +40,40 @@ export default function App() {
   const [EmployeeName, setName] = useState("")
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0]; // Get the first file selected
-    setSelectedFile(file);
-  };
+     const handleFileChange = (e) => {
+        setSelectedFile(e.target.files[0]);
+     };
   
+  //axios post for uploading CSV file
+   const handleUploadFile = async () => {
+        if (!selectedFile) {
+            alert("Please select a file");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("csvFile", selectedFile);
+
+        try {
+            const response = await axios.post("http://localhost:3000/api/employee/addCsvEmployee", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            alert(response.data.message);
+        } catch (error) {
+            console.error("Error uploading CSV:", error);
+            alert("Upload failed");
+        }
+    };
+ 
   const handlenameChange = (event) => {
     setName(event.target.value);  // Store the value of the input in state
   };
-
-  // To access the value, just refer to `email`
-  console.log("Current email value:", EmployeeName); // This logs the email value
-
   const handleEmailChange = (event) => {
     setEmail(event.target.value);  // Store the value of the input in state
   };
-
-  // To access the value, just refer to `email`
-  console.log("Current email value:", email); // This logs the email value
 
   const handleDeptChange = (event) => {
   const selectedId = event.target.value;  // dept.id will be the value
@@ -65,18 +81,19 @@ export default function App() {
   };
   useEffect(() => {
   if (selectedDeptId) {
-    console.log("Selected Department ID:", selectedDeptId);
+    // console.log("Selected Department ID:", selectedDeptId);
   }
 }, [selectedDeptId]);
 
 
-  const fetchPosts = async () => {
+  //fetch all department and put in the radio button
+  const fetchDepartment = async () => {
     try {
       const response = await axios.get(
         `http://localhost:3000/api/department/getAllDepartment`
       );
       const fetchDEpt = response.data;
-      console.log(fetchDEpt)
+      //this block of code for fetching new department
       setDepartment((prevPosts) => {
         const existingIds = new Set(prevPosts.map((post) => post.id));
         const newUniquePosts = fetchDEpt.filter((post) => !existingIds.has(post.id));
@@ -88,27 +105,29 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchPosts();
+    fetchDepartment();
+    //polling department
        const intervalId = setInterval(() => {
-             fetchPosts();
+             fetchDepartment();
              console.log(" polling")
-         }, 10000); // Poll every 10 second
+         }, 6000); // Poll every 6 second
   }, []);
 
    const handleAddEmployee = async (e) => {
   if (e && e.preventDefault) e.preventDefault(); // Ensure e is valid before calling preventDefault()
 
-  // Generate a random 13-digit number
+  // Generate a random 13-digit number for department ID
   const randomDepartmentId = Math.floor(1000000000000 + Math.random() * 9000000000000);
-
-     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
+    
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    //checking for valid email
 if (!emailRegex.test(email)) {
   alert("Please enter a valid email address.");
   return; // Stop further execution if the email is invalid
 }
 
-  try {
+     try {
+    //axios post for adding a employee
     const response = await axios.post("http://localhost:3000/api/employee/addEmployee", {
       employee_id: randomDepartmentId,
       department_id: Number(selectedDeptId),
@@ -120,7 +139,6 @@ if (!emailRegex.test(email)) {
       closeEmployeeModal()
     }
 
-    console.log("Successful employee add", response.data);
   } catch (error) {
     console.error("Error adding employee:", error);
   }
@@ -138,7 +156,8 @@ if (!emailRegex.test(email)) {
     return;
   }
 
-  try {
+    try {
+    //axios post for adding department
     const response = await fetch("http://localhost:3000/api/department/createDepartment", {
       method: "POST",
       headers: {
@@ -185,14 +204,14 @@ if (!emailRegex.test(email)) {
           <ModalContent>
             <ModalHeader className="flex flex-col gap-1 text-black">Add Department</ModalHeader>
             <ModalBody className="text-black">
-                  <Input type="file" />
+                  <Input type="file" accept=".csv" onChange={handleFileChange}/>
                    {selectedFile && <p>Selected file: {selectedFile.name}</p>}
             </ModalBody>
             <ModalFooter>
               <Button color="danger" variant="light" onPress={closeCSVModal}>
                 Close
               </Button>
-              <Button color="success" onPress={closeCSVModal}>
+              <Button color="success" onClick={handleUploadFile}>
                 Save
               </Button>
             </ModalFooter>

@@ -1,94 +1,80 @@
-import { IncomingForm } from 'formidable';
-import Papa from 'papaparse';
-import fs from 'fs';
+import { NextResponse } from "next/server";
 import prisma from "../../../../utils/connect";
-import * as nextConnect from 'next-connect';  // Correct import
+import { parse } from "papaparse";
 
-// Disable Next.js body parser
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // Disable Next.js default body parsing
   },
 };
 
-const handler = nextConnect.default();  // Access default export of nextConnect
-
-// Middleware for handling file upload using formidable
-handler.use((req, res, next) => {
-  const form = new IncomingForm();
-  form.keepExtensions = true;
-
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return res.status(400).json({ error: 'Error parsing form data', details: err.message });
-    }
-
-    req.files = files;
-    req.fields = fields;
-    next();
-  });
-});
-
-handler.post(async (req, res) => {
+export async function POST(request) {
   try {
-    // Ensure a file is uploaded
-    if (!req.files || !req.files.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+    // Extract the file from the request
+    const data = await request.formData();
+    const file = data.get("csvFile");
+
+    if (!file) {
+      return NextResponse.json(
+        { error: "No file uploaded" },
+        { status: 400 }
+      );
     }
 
-    const file = req.files.file[0]; // If it's a single file upload, it will be in an array, so we access the first element
+    // Read the file content
+    const fileContent = await file.text();
 
-    // Read the file and parse it using PapaParse
-    const fileContent = await readFile(file.filepath);
-
-    Papa.parse(fileContent, {
+    // Parse the CSV file
+    const { data: employees, errors } = parse(fileContent, {
       header: true,
       skipEmptyLines: true,
-      complete: async (result) => {
-        // Now `result.data` contains the parsed CSV data
-        const employees = result.data;
-
-        // Validate and filter out any invalid employee data
-        const validEmployees = employees.filter(emp =>
-          emp.employee_id && emp.name && emp.email && emp.department_id
-        );
-
-        try {
-          // Insert valid employees into the database
-          const createdEmployees = await prisma.employee.createMany({
-            data: validEmployees.map(emp => ({
-              employee_id: emp.employee_id,
-              department_id: Number(emp.department_id),  // Ensure department_id is a number
-              name: emp.name,
-              email: emp.email,
-            })),
-          });
-
-          return res.status(201).json(createdEmployees); // Successful creation
-        } catch (error) {
-          console.error("Error inserting employees:", error);
-          return res.status(500).json({ error: "Failed to create employees", details: error.message });
-        }
-      },
-      error: (error) => {
-        console.error('PapaParse Error:', error); // Log PapaParse errors
-        return res.status(400).json({ error: "Error parsing CSV file", details: error.message });
-      },
+      dynamicTyping: true, // Automatically convert numeric fields to numbers
     });
+
+    if (errors.length > 0) {
+      return NextResponse.json(
+        { error: "Error parsing CSV file", details: errors },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const validEmployees = employees
+      .filter((emp) => emailRegex.test(emp.email))
+      .map((emp) => ({
+        ...emp,
+        employee_id: parseInt(emp.employee_id, 10), // Convert employee_id to integer
+        department_id: parseInt(emp.department_id, 10), // Convert department_id to integer
+      }));
+
+    // Insert valid employees into the database
+    await prisma.employee.createMany({
+      data: validEmployees,
+    });
+
+    return NextResponse.json(
+      { message: "Employees added successfully" },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("Error processing request:", error);
-    return res.status(500).json({ error: "Failed to process CSV upload", details: error.message });
+    // Safeguard: Ensure the error object is valid
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error in POST handler:", errorMessage);
+
+    return NextResponse.json(
+      { error: "Internal server error", details: errorMessage },
+      { status: 500 }
+    );
   }
-});
+}
 
-// Utility function to read file content
-const readFile = (filePath) => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) reject(err);
-      resolve(data);
-    });
+// Handle OPTIONS method
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      Allow: "POST",
+    },
   });
-};
-
-export default handler;
+}

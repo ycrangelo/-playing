@@ -80,9 +80,6 @@ if (!emailRegex.test(selectedEmployee.email)) {
         onClose();  // Close modal or reset form
       }
     const empstatus = status === "true" ? true : false;
-
-      console.log(empstatus)
-       console.log(selectedEmployee.employee_id)
       const respontActive = await axios.post("http://localhost:3000/api/employee/changeStatus",
         {
           employee_id: Number(selectedEmployee.employee_id),
@@ -94,20 +91,18 @@ if (!emailRegex.test(selectedEmployee.email)) {
           },  
         }
       )
-      console.log(respontActive)
     } catch (error) {
       console.error("Error updating status:", error.response?.data || error.message);
       alert("Failed to update status.");
     }
   };
 
-  const fetchPosts = async () => {
+  const handleFetchEmployee = async () => {
     try {
       const response = await axios.get(
         `http://localhost:3000/api/employee/getAllEmployeeInfo`
       );
       const fetchEmployee = response.data;
-      console.log(fetchEmployee)
       setPosts((prevPosts) => {
         const existingIds = new Set(prevPosts.map((post) => post.id));
         const newUniquePosts = fetchEmployee.filter((post) => !existingIds.has(post.id));
@@ -119,8 +114,13 @@ if (!emailRegex.test(selectedEmployee.email)) {
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+      handleFetchEmployee();
+      //polling Employee
+         const intervalId = setInterval(() => {
+               handleFetchEmployee();
+               console.log(" polling")
+           }, 6000); // Poll every 6 second
+    }, []);
 
 
 

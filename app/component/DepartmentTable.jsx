@@ -37,13 +37,12 @@ export default function DepartmentTable() {
   }
 };
 
-  const fetchPosts = async () => {
+  const handlefetchDEpartment = async () => {
     try {
       const response = await axios.get(
         `http://localhost:3000/api/department/getAllDepartment`
       );
       const fetchDEpt = response.data;
-      console.log(fetchDEpt)
       setPosts((prevPosts) => {
         const existingIds = new Set(prevPosts.map((post) => post.id));
         const newUniquePosts = fetchDEpt.filter((post) => !existingIds.has(post.id));
@@ -55,7 +54,12 @@ export default function DepartmentTable() {
   };
 
   useEffect(() => {
-    fetchPosts();
+    handlefetchDEpartment();
+     //polling Department
+         const intervalId = setInterval(() => {
+               handlefetchDEpartment();
+               console.log(" polling")
+           }, 6000); // Poll every 6 second
   }, []);
 
   return (
