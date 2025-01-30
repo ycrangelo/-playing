@@ -43,11 +43,7 @@ export default function DepartmentTable() {
         `http://localhost:3000/api/department/getAllDepartment`
       );
       const fetchDEpt = response.data;
-      setPosts((prevPosts) => {
-        const existingIds = new Set(prevPosts.map((post) => post.id));
-        const newUniquePosts = fetchDEpt.filter((post) => !existingIds.has(post.id));
-        return [...prevPosts, ...newUniquePosts];
-      });
+      setPosts(fetchDEpt);
     } catch (error) {
       console.error("Error fetching posts:", error.response ? error.response.data : error.message);
     }
@@ -63,7 +59,7 @@ export default function DepartmentTable() {
   }, []);
 
   return (
-    <div className='pt-[5rem]'>
+    <div className='pt-[3rem] pb-[5rem]'>
           <h1>Department Table</h1>
      <Table className="text-black" aria-label="Employee Table">
         <TableHeader>

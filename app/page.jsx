@@ -125,6 +125,7 @@ if (!emailRegex.test(email)) {
   alert("Please enter a valid email address.");
   return; // Stop further execution if the email is invalid
 }
+   
 
      try {
     //axios post for adding a employee
@@ -153,6 +154,7 @@ if (!emailRegex.test(email)) {
 
   if (!departmentDescription) {
     setMessage({ type: "error", text: "Department description is required." });
+    alert("department description is required")
     return;
   }
 
@@ -184,12 +186,9 @@ if (!emailRegex.test(email)) {
 };
 
   return (
-   <div className="h-screen ">
+   <div className="min-h-screen ">
   <div className="flex flex-col px-6 gap-4">
-        <EmployeeTable />
-        <DepartmentTable/>
-
-    <div className="flex flex-col sm:flex-row gap-4">
+    <div className="flex flex-col sm:flex-row gap-4 pt-6">
       <div className="w-full sm:w-auto">
         {/* Button to open Add Employee using CSV File */}
         <Button color="default" onPress={openCSVModal}>Add Employee using CSV file</Button>
@@ -299,7 +298,9 @@ if (!emailRegex.test(email)) {
           </ModalContent>
         </Modal>
       </div>
-    </div>
+        </div>
+         <EmployeeTable />
+        <DepartmentTable/>
   </div>
 </div>
 
