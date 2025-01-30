@@ -66,6 +66,7 @@ export default function App() {
             console.error("Error uploading CSV:", error);
             alert("Upload failed");
         }
+     closeCSVModal()
     };
  
   const handlenameChange = (event) => {
