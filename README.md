@@ -1,3 +1,55 @@
+# Employee Information System
+
+This is a simple Employee Information System that allows you to manage employees and departments with a set of RESTful API endpoints. The system supports creating, updating, deleting departments, and managing employee information. It also supports batch employee upload via CSV file.
+
+## Features
+1. Create, read, update, delete departments.
+2. Create, read, update, change status of employees.
+3. Batch upload of employee data from a CSV file with email validation.
+4. Mailer functionality for sending notifications.
+![image](https://github.com/user-attachments/assets/7b57dbd5-4c49-4658-b801-a0b41ac638aa)
+
+THIS ARE THE BUTTON USE FOR ADDING EMPLOYEE,DEPARTMENT AND UPLAOD CSV
+
+![image](https://github.com/user-attachments/assets/751b0360-8c78-4884-a426-154980c56058)
+
+![image](https://github.com/user-attachments/assets/dbc8a150-dad4-4be2-9d9c-1db0f609c17a)
+
+
+THIS IS THE BUTTON USED FOR UPDATING THE EMPLOYEE INFORMATION AND THE STATUS
+
+![image](https://github.com/user-attachments/assets/0a3305fa-d47b-4334-8f34-a9d8c6186afe)
+
+![image](https://github.com/user-attachments/assets/fc24bdec-7847-4152-8a44-bf3eb7563a11)
+
+
+THIS BUTTON USED FOR VIEWING EMPLOYEE DETAILS
+
+![image](https://github.com/user-attachments/assets/1b822b03-7631-42b5-b5b2-f5920cebf6d2)
+
+THIS BUTTON USED FOR DELETE SELECTED DEPARTMENT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
